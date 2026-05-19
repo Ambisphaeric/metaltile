@@ -60,7 +60,9 @@
 | 053 | Parallelize per-kernel benches | CLI | ⚠️ feasible | — | — | — | — | Multiple queues possible but DVFS/cache pollution risks. Marginal wall-time win. [Details](ideas/053-parallel-bench-per-kernel.md) |
 | 054 | `tile bench --compare-against` | CLI | ⚠️ feasible | — | — | — | — | JSON save/load exists. Inline diff is a thin UX layer. [Details](ideas/054-bench-compare-against-baseline.md) |
 | 055 | Precompile `.metallib` per GPU family | Build | 🔴 blocked | — | — | — | — | MetalTile generates MSL at runtime (JIT). Build-time pre-compilation is infeasible. [Details](ideas/055-precompile-metallib-gpu-family.md) |
-| M1–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
+| M1 | ML-driven autotuner | Moonshot | ⚠️ feasible | — | — | — | — | Cache + feature extraction exist. Needs data collection + model training. [Details](ideas/m1-ml-driven-autotuner.md) |
+| M2 | AMX / ANE offload for small-batch GEMM | Moonshot | 🔴 blocked | — | — | — | — | No public AMX API; CoreML overhead dominates. [Details](ideas/m2-amx-ane-offload.md) |
+| M3–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 
 ## Legend
 - 🔴 **blocked** — prerequisite missing or idea ill-formed against current code

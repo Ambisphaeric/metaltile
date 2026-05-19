@@ -528,6 +528,24 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+## Moonshot assessments (M1–M2)
+
+### M1 — ML-driven autotuner
+**Status:** ⚠️ feasible (project-scale)  
+**Investigated:** 2026-05-18
+
+**Result:** `TuneCache`, feature extraction (`compute_profiles`), and bench harness all exist. The missing pieces are: (1) exhaustive data collection (grid search doesn't exist yet — see #046), (2) model training, (3) wiring prediction into `lookup()`. Phase 1 should be "implement grid search + populate cache"; Phase 2 is "replace search with learned model". [Details](ideas/m1-ml-driven-autotuner.md)
+
+---
+
+### M2 — AMX / ANE offload for small-batch f16 GEMM
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** AMX has no public API — access is via private `libsystem_m.dylib` symbols or reverse-engineered bindings. CoreML/ANE has massive model-compilation overhead that dominates small-batch GEMM. MetalTile is GPU-first; MLX (Apple's own framework) also uses Metal exclusively. [Details](ideas/m2-amx-ane-offload.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |
