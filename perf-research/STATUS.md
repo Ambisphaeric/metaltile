@@ -15,8 +15,17 @@
 | 008 | Softmax: float4 loads on f16/bf16 | Quick-win | 🔴 blocked | — | — | — | — | DSL has no vector-load primitive. Same blocker as #5. [Details](ideas/005-010-feasibility-study.md#8-softmax-float4-loads-on-f16bf16-inner-loop) |
 | 009 | LayerNorm: mirror RMS-norm tweaks | Quick-win | ⚪ not-started | — | — | — | — | Same as #6: trivial kernel edit, need param adjustment. [Details](ideas/005-010-feasibility-study.md#9-layernorm-mirror-rms-norm-tweaks) |
 | 010 | GEMV: tune `simd_per_tg` per K | Quick-win | 🟢 done | `../metaltile-perf-idea-10` | `010-run2.json` | `010-run2.json` | Small win for f16 | tpg=512 beats baseline by +1.8% on f16. tpg=1024 is a −20% regression on f16. f32/bf16 flat. [Details](ideas/010-gemv-tpg-sweep.md) |
-| 011–015 | *(reserved for future quick-wins)* | Quick-win | ⚪ not-started | — | — | — | — | |
-| 016–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
+| 011 | GEMV-masked: dense fallback | Quick-win | ⚪ not-started | — | — | — | — | |
+| 012 | all_reduce: two-stage simd→tg | Quick-win | ⚪ no-op | — | — | — | — | Already optimal — `tile inspect` confirms. [Details](ideas/012-020-feasibility-study.md#12-all_reduce-two-stage-simdthreadgroup) |
+| 013 | row-reduce: rows-per-tg small N | Quick-win | ⚠️ feasible | — | — | — | — | Dispatch-level change. Small-N only. [Details](ideas/012-020-feasibility-study.md#13-row-reduce-rows-per-threadgroup-when-n-is-small) |
+| 014 | scan: simd_prefix_inclusive_sum | Quick-win | ⚪ no-op | — | — | — | — | Already implemented. [Details](ideas/012-020-feasibility-study.md#14-scan-prefer-simd_prefix_inclusive_sum) |
+| 015 | argmax: hold 847% | Quick-win | ⚪ marginal | — | — | — | — | Already optimal; graph-level profiling needed. [Details](ideas/012-020-feasibility-study.md#15-argmax-refuse-to-slow-down-847) |
+| 016 | RoPE: precompute sin/cos tg-mem | One-day | 🔴 blocked | — | — | — | — | Dispatch restructuring needed. [Details](ideas/012-020-feasibility-study.md#16-rope-precompute-sincos-to-threadgroup-memory) |
+| 017 | RoPE-into-QKV fusion | One-day | 🔴 blocked | — | — | — | — | New kernel + bench harness. [Details](ideas/012-020-feasibility-study.md#17-rope-into-qkv-fusion) |
+| 018 | KV-cache: vectorized copy | One-day | 🔴 blocked | — | — | — | — | DSL lacks vector primitives. [Details](ideas/012-020-feasibility-study.md#18-kv-cache-append-vectorized-aligned-copy) |
+| 019 | Gather: tg prefetch hot indices | One-day | 🔴 blocked | — | — | — | — | Dispatch restructuring needed. [Details](ideas/012-020-feasibility-study.md#19-gather-prefetch-to-threadgroup-for-hot-indices) |
+| 020 | Copy: vectorize stride-1 | One-day | ⚠️ feasible | — | — | — | — | Investigate `vectorize.rs` pass. [Details](ideas/012-020-feasibility-study.md#20-strided-copy-emit-vec-types-for-stride-1-axes) |
+| 021–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
 | 036–055 | *(multi-day items)* | Multi-day | ⚪ not-started | — | — | — | — | |
 | M1–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 
