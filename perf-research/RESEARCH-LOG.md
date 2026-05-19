@@ -276,6 +276,20 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### 027 — SSM: scan with state vectorization
+**Status:** ⚪ no-op / already implemented  
+**Investigated:** 2026-05-18
+
+**Result:** The target file `ssm.rs` contains three kernels. The `ssm_step` kernel does a serial loop over `state_dim` per `(head, d)` pair: `new_h = decay * h_old + dt * b[n] * x`, then `y_d += c[n] * new_h`. The `mt_ssm_step` kernel already parallelizes this across 32 threads with `simd_sum`.
+
+**Key finding:** This is **not a scan** — each state dimension `n` is independent. `h_old` is the previous token's state for slot `(head, n, d)`, not the previous `n` in the loop. The state update and dot-product accumulation are already fused in the same loop body.
+
+**Conclusion:** `mt_ssm_step` is exactly the vectorized variant the hypothesis describes. The idea was written before `mt_ssm_step` existed.
+
+**File:** [ideas/027-ssm-scan-state-vectorization.md](ideas/027-ssm-scan-state-vectorization.md)
+
+---
+
 ## Codegen pass assessments (ideas 41–45)
 
 ### 041 — `schedule.rs`: software pipelining
