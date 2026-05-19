@@ -554,6 +554,30 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### M4 — Auto-fuse arbitrary elementwise DAGs at runtime
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** `fusion.rs` is block-local only. MetalTile has no runtime graph IR or cross-kernel codegen. Fusing `softmax(qk).matmul(v).rms_norm(g)` would require whole-program MSL fusion + dispatch grid reconciliation — essentially reimplementing XLA/TVM. [Details](ideas/m4-auto-fuse-elementwise-dags.md)
+
+---
+
+### M5 — Block-sparse SDPA exploiting real mask patterns
+**Status:** ⚠️ feasible (high impact)  
+**Investigated:** 2026-05-18
+
+**Result:** `sdpa_decode` currently walks all KV positions densely. Adding mask metadata (window size, sink tokens) + skip logic is a localized kernel change. For sliding-window attention at n_kv=32768, W=4096, this is an 8× K/V traffic reduction. Key: use simdgroup-level skipping to avoid divergence. [Details](ideas/m5-block-sparse-sdpa.md)
+
+---
+
+### M6 — KV-cache via Metal heaps + virtual remap
+**Status:** ⚠️ feasible (marginal)  
+**Investigated:** 2026-05-18
+
+**Result:** `kv_cache_update` already writes directly into a pre-allocated cache buffer at `position`. There is no copy at the kernel level. Metal heaps would not improve on the existing `BUF_POOL` + in-place write architecture. [Details](ideas/m6-kv-cache-metal-heaps.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |

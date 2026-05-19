@@ -63,7 +63,10 @@
 | M1 | ML-driven autotuner | Moonshot | ⚠️ feasible | — | — | — | — | Cache + feature extraction exist. Needs data collection + model training. [Details](ideas/m1-ml-driven-autotuner.md) |
 | M2 | AMX / ANE offload for small-batch GEMM | Moonshot | 🔴 blocked | — | — | — | — | No public AMX API; CoreML overhead dominates. [Details](ideas/m2-amx-ane-offload.md) |
 | M3 | Persistent-kernel graph capture | Moonshot | 🔴 blocked | — | — | — | — | Metal has no graph capture API. `dispatch_chain` already eliminates most per-dispatch overhead. [Details](ideas/m3-persistent-kernel-graph-capture.md) |
-| M4–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
+| M4 | Auto-fuse arbitrary elementwise DAGs | Moonshot | 🔴 blocked | — | — | — | — | No runtime graph IR or cross-kernel codegen. `dispatch_chain` is pragmatic limit. [Details](ideas/m4-auto-fuse-elementwise-dags.md) |
+| M5 | Block-sparse SDPA | Moonshot | ⚠️ feasible | — | — | — | — | Sliding-window skip logic in `sdpa_decode` is a localized kernel change. High impact for long context. [Details](ideas/m5-block-sparse-sdpa.md) |
+| M6 | KV-cache via Metal heaps | Moonshot | ⚠️ feasible (marginal) | — | — | — | — | `kv_cache_update` already writes in-place. No copy exists at kernel level. [Details](ideas/m6-kv-cache-metal-heaps.md) |
+| M7–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 
 ## Legend
 - 🔴 **blocked** — prerequisite missing or idea ill-formed against current code
