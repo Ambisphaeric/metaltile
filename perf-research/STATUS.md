@@ -26,7 +26,8 @@
 | 019 | Gather: tg prefetch hot indices | One-day | 🔴 blocked | — | — | — | — | Dispatch restructuring needed. [Details](ideas/012-020-feasibility-study.md#19-gather-prefetch-to-threadgroup-for-hot-indices) |
 | 020 | Copy: vectorize stride-1 | One-day | ⚠️ feasible | — | — | — | — | Investigate `vectorize.rs` pass. [Details](ideas/012-020-feasibility-study.md#20-strided-copy-emit-vec-types-for-stride-1-axes) |
 | 021 | FP4 dequant: packed bit ops | One-day | 🔴 blocked | — | — | — | — | Target file is scalar quantize-dequant roundtrip, not packed FP4 dequant. Ill-formed against current code. [Details](ideas/021-fp4-dequant-packed-bit-ops.md) |
-| 022–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
+| 022 | Quantized int4 GEMV: simdgroup_matrix multiply | One-day | 🔴 blocked | — | — | — | — | `simdgroup_matrix_multiply` is a GEMM primitive, not GEMV. GEMV has N=1; using it requires padding and discarding 7/8 of work. MLX's own qmv kernels use scalar dequant+simd_sum. [Details](ideas/022-dequant-gemv-simdgroup-matmul.md) |
+| 023–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
 | 036–055 | *(multi-day items)* | Multi-day | ⚪ not-started | — | — | — | — | |
 | M1–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 

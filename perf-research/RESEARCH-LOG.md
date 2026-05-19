@@ -194,6 +194,22 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### 022 — Quantized int4 GEMV: simdgroup_matrix multiply
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** The hypothesis proposes applying `simdgroup_matrix_multiply` (a GEMM primitive) to a **GEMV** kernel. The current `dequant_gemv_int4` kernel is `KernelMode::Reduction`, dispatching `[m, 1, 1]` with one threadgroup per output row. It does scalar dequant→FMA, accumulating with `reduce_sum(acc)`.
+
+**Why this doesn't work:** GEMV is matrix-vector (`W[M,K] × x[K,1]`). The "N" dimension is 1. `simdgroup_matrix_multiply` computes `C += A × B` where all operands are matrix tiles (e.g., 8×8, 16×8). To use it for GEMV, one would need to pad the vector to a K×8 tile, compute an M×8 result, and discard 7/8 of the output — architecturally wasteful.
+
+**MLX reference check:** MLX's actual quantized GEMV kernels (`qmv_fast_impl`, `qmv_impl` in `quantized.h`) do **not** use `simdgroup_matrix_multiply`. They use scalar dequantization + `simd_sum`, exactly like MetalTile's current approach. The only MLX kernels using simdgroup matmul are steel GEMM and convolution.
+
+**Adjacent but different idea:** MLX processes **8 rows per threadgroup** (`num_simdgroups=2 × results_per_simdgroup=4`), which improves occupancy. That is a dispatch-level change (⚠️ feasible, multi-day), not the simdgroup-matmul optimization hypothesized here.
+
+**File:** [ideas/022-dequant-gemv-simdgroup-matmul.md](ideas/022-dequant-gemv-simdgroup-matmul.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |
