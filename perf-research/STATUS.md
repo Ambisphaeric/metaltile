@@ -25,7 +25,8 @@
 | 018 | KV-cache: vectorized copy | One-day | 🔴 blocked | — | — | — | — | DSL lacks vector primitives. [Details](ideas/012-020-feasibility-study.md#18-kv-cache-append-vectorized-aligned-copy) |
 | 019 | Gather: tg prefetch hot indices | One-day | 🔴 blocked | — | — | — | — | Dispatch restructuring needed. [Details](ideas/012-020-feasibility-study.md#19-gather-prefetch-to-threadgroup-for-hot-indices) |
 | 020 | Copy: vectorize stride-1 | One-day | ⚠️ feasible | — | — | — | — | Investigate `vectorize.rs` pass. [Details](ideas/012-020-feasibility-study.md#20-strided-copy-emit-vec-types-for-stride-1-axes) |
-| 021–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
+| 021 | FP4 dequant: packed bit ops | One-day | 🔴 blocked | — | — | — | — | Target file is scalar quantize-dequant roundtrip, not packed FP4 dequant. Ill-formed against current code. [Details](ideas/021-fp4-dequant-packed-bit-ops.md) |
+| 022–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
 | 036–055 | *(multi-day items)* | Multi-day | ⚪ not-started | — | — | — | — | |
 | M1–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 

@@ -182,6 +182,18 @@
 
 ---
 
+### 021 — FP4 dequant: packed bit ops
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** The target kernel (`mt_fp4_quant_dequant`) is a **scalar quantize-dequantize roundtrip** on `Tensor<f32>`, not a packed FP4 dequantization kernel. It uses 7 nested `select` statements to map a float to one of 8 FP4 levels, then immediately rescales back to `f32`. There is no packed `uint32`/`uint8` load, no bit shuffle, no LUT, and no `half` type usage.
+
+The hypothesis describes a **weight-dequantization** optimization (8 FP4 values packed in a 32-bit word → 8 `half` values via LUT), which is a common quantized-GEMV/GEMM pattern. That operation does not exist in `mlx/fp_quantized.rs`. Implementing it would require a new kernel + new bench harness (packed I/O contract), making this a multi-day effort rather than a single-file tweak.
+
+**File:** [ideas/021-fp4-dequant-packed-bit-ops.md](ideas/021-fp4-dequant-packed-bit-ops.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |
