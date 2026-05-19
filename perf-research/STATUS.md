@@ -8,8 +8,14 @@
 | 001 | SDPA tile: bump BLOCK_M on f16/bf16 | Quick-win | 🔴 blocked | `../metaltile-perf-idea-1` | — | — | — | Target kernel is scalar vector; BLOCK_M constant does not exist. Needs re-scope or prerequisite tiled kernel. [Details](ideas/001-sdpa-tile-block-m.md) |
 | 002 | SDPA: BLOCK_N 64 → 128 on D=128 | Quick-win | ⚪ not-started | — | — | — | — | |
 | 003 | SDPA: split-K for low-occupancy H=8 | Quick-win | ⚪ not-started | — | — | — | — | |
-| 004 | SDPA-vector decode: GQA-aware K/V reuse | Quick-win | ⚪ not-started | — | — | — | — | |
-| 005–015 | *(reserved for future quick-wins)* | Quick-win | ⚪ not-started | — | — | — | — | |
+| 004 | SDPA-vector decode: GQA-aware K/V reuse | Quick-win | 🔴 blocked | `../metaltile-perf-idea-4` | — | — | — | `simd_shuffle` can't cross threadgroups; real fix is dispatch-shape change + cooperative tg-mem K/V caching. [Details](ideas/004-sdpa-gqa-kv-reuse.md) |
+| 005 | SDPA-vector: 8-wide vec loads f16/bf16 | Quick-win | 🔴 blocked | — | — | — | — | DSL has no vector-load primitive. [Details](ideas/005-010-feasibility-study.md#5-sdpa-vector-8-wide-vectorized-loads-on-f16bf16) |
+| 006 | RMS-norm: unroll 4 → 8 | Quick-win | ⚪ not-started | — | — | — | — | Kernel edit is trivial but geometry mismatch at `n=4096, tpg=1024`. Need `tpg=512` or `n=8192`. [Details](ideas/005-010-feasibility-study.md#6-rms-norm-unroll-4--8) |
+| 007 | Softmax: simdgroup reduce for small N | Quick-win | ⚪ not-started | — | — | — | — | Kernel already optimal; bench doesn't exercise small N. Need `n=32` shape. [Details](ideas/005-010-feasibility-study.md#7-softmax-simdgroup-reduce-for-small-n-32) |
+| 008 | Softmax: float4 loads on f16/bf16 | Quick-win | 🔴 blocked | — | — | — | — | DSL has no vector-load primitive. Same blocker as #5. [Details](ideas/005-010-feasibility-study.md#8-softmax-float4-loads-on-f16bf16-inner-loop) |
+| 009 | LayerNorm: mirror RMS-norm tweaks | Quick-win | ⚪ not-started | — | — | — | — | Same as #6: trivial kernel edit, need param adjustment. [Details](ideas/005-010-feasibility-study.md#9-layernorm-mirror-rms-norm-tweaks) |
+| 010 | GEMV: tune `simd_per_tg` per K | Quick-win | 🟢 done | `../metaltile-perf-idea-10` | `010-run2.json` | `010-run2.json` | Small win for f16 | tpg=512 beats baseline by +1.8% on f16. tpg=1024 is a −20% regression on f16. f32/bf16 flat. [Details](ideas/010-gemv-tpg-sweep.md) |
+| 011–015 | *(reserved for future quick-wins)* | Quick-win | ⚪ not-started | — | — | — | — | |
 | 016–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
 | 036–055 | *(multi-day items)* | Multi-day | ⚪ not-started | — | — | — | — | |
 | M1–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
