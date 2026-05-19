@@ -33,7 +33,13 @@
 | 026 | Sampling: radix-select top-k | One-day | 🔴 blocked | — | — | — | — | Target file contains categorical sampling kernel, not top-k. No top-k kernel in MetalTile or MLX. New kernel + bench harness required. [Details](ideas/026-sampling-radix-select-topk.md) |
 | 027 | SSM: scan with state vectorization | One-day | ⚪ no-op | — | — | — | — | `mt_ssm_step` already vectorizes state_dim across 32 threads with `simd_sum`. No scan exists to fuse — state dims are independent. [Details](ideas/027-ssm-scan-state-vectorization.md) |
 | 028 | logsumexp: fuse max + sum-exp | One-day | ⚪ no-op | — | — | — | — | Kernel already uses single-pass online logsumexp (matches MLX `logsumexp_looped`). MT%=154–238%. [Details](ideas/028-logsumexp-fuse-max-sum-exp.md) |
-| 029–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
+| 029 | Short-row cooperative groups | One-day | ⚠️ feasible | — | — | — | — | Dispatch heuristic: tpg=32 for N≤32, same pattern as #007. [Details](ideas/029-short-row-cooperative-groups.md) |
+| 030 | binary_two: FMA autovec diagnostic | One-day | ⚪ no-op | — | — | — | — | Kernel computes x+y and x*y independently — no FMA pattern exists. [Details](ideas/030-binary-two-fma-autovec.md) |
+| 031 | Unary: emit `metal::precise::sigmoid` | One-day | ⚠️ feasible | — | — | — | — | `mt_sigmoid` manually expands formula; DSL has `sigmoid()` builtin. One-line fix. [Details](ideas/031-unary-precise-intrinsics.md) |
+| 032 | SwiGLU/GELU fuse with matmul epilogue | One-day | 🔴 blocked | — | — | — | — | No GEMM kernel in DSL; needs multi-day project. [Details](ideas/032-swiglu-gelu-fuse-matmul-epilogue.md) |
+| 033 | argmin variant in arg_reduce | One-day | ⚠️ feasible | — | — | — | — | Copy-paste argmax, flip init + comparison. ~30 lines. [Details](ideas/033-argmin-variant.md) |
+| 034 | softmax + attention epilogue fusion | One-day | 🔴 blocked | — | — | — | — | No tiled attention kernel; moonshot-level scope. [Details](ideas/034-softmax-attention-fusion.md) |
+| 035 | random: 64-bit state / vec4 generation | One-day | 🔴 blocked | — | — | — | — | `mt_random_hash` is a toy hash, not a PRNG. Hypothesis ill-formed. [Details](ideas/035-random-xorshift-vec4.md) |
 | 041 | schedule.rs: software pipelining | Codegen | 🔴 blocked | — | — | — | — | Target pass is a tile annotator, not a loop scheduler. Needs new pass. [Details](ideas/041-schedule-software-pipelining.md) |
 | 042 | licm.rs: hoist gather indices | Codegen | ⚪ no-op | — | — | — | — | Already hoists loop-invariant `Load` from read-only params. [Details](ideas/042-licm-hoist-gather-indices.md) |
 | 043 | cse.rs: extend across simdgroup boundaries | Codegen | ⚠️ feasible | — | — | — | — | Block-local CSE misses cross-branch common subexpressions. Needs re-scoping. [Details](ideas/043-cse-across-simdgroup-boundaries.md) |

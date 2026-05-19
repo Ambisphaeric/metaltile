@@ -346,6 +346,64 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+## One-day structural changes (ideas 29–35)
+
+### 029 — Short-row cooperative groups
+**Status:** ⚠️ feasible  
+**Investigated:** 2026-05-18
+
+**Result:** `strided_reduce` + `reduce_sum` already uses `simd_sum` + `threadgroup_barrier`. For N≤32, dispatching tpg=256 wastes 224 threads. Same pattern as #007: smaller tpg eliminates idle lanes and redundant barriers. [Details](ideas/029-short-row-cooperative-groups.md)
+
+---
+
+### 030 — `binary_two`: FMA autovec diagnostic
+**Status:** ⚪ no-op  
+**Investigated:** 2026-05-18
+
+**Result:** `mt_binary_two` computes `x+y` and `x*y` independently to two separate outputs. There is no `a*b+c` pattern, so FMA cannot emit. Kernel is bandwidth-bound regardless. [Details](ideas/030-binary-two-fma-autovec.md)
+
+---
+
+### 031 — Unary: emit `metal::precise::sigmoid` directly
+**Status:** ⚠️ feasible  
+**Investigated:** 2026-05-18
+
+**Result:** `mt_sigmoid` manually expands `1/(1+exp(-x))`. The DSL already has a `sigmoid()` builtin (used by `silu`). Switching to the builtin is a one-line cleanup — likely more accurate and smaller MSL. Other unary kernels already use builtins. [Details](ideas/031-unary-precise-intrinsics.md)
+
+---
+
+### 032 — SwiGLU/GELU: fuse with downstream matmul write
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** No GEMM kernel exists in the DSL. Epilogue fusion requires both a GEMM implementation and a fused-emitter codegen pass. Multi-day to project-scale effort. [Details](ideas/032-swiglu-gelu-fuse-matmul-epilogue.md)
+
+---
+
+### 033 — argmin variant in arg_reduce
+**Status:** ⚠️ feasible  
+**Investigated:** 2026-05-18
+
+**Result:** Both `mlx/arg_reduce.rs` and `ffai/arg_reduce.rs` have argmax only. Argmin is a copy-paste with `neg_infinity()` → `infinity()` and `>` → `<`. ~30 lines total. [Details](ideas/033-argmin-variant.md)
+
+---
+
+### 034 — softmax + attention epilogue fusion
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** MetalTile has no tiled attention kernel (only scalar vector decode). Fusing softmax with matmul(V) is the core of FlashAttention — a moonshot-level item, not a one-day tweak. [Details](ideas/034-softmax-attention-fusion.md)
+
+---
+
+### 035 — random: 64-bit state / vec4 generation
+**Status:** 🔴 blocked / ill-formed  
+**Investigated:** 2026-05-18
+
+**Result:** `mt_random_hash` is a toy hash (`gid + 1` → 3 xorshifts), not a PRNG. No state to widen, no constants to amortize. Hypothesis describes a different kernel entirely. [Details](ideas/035-random-xorshift-vec4.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |
