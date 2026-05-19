@@ -28,7 +28,12 @@
 | 021 | FP4 dequant: packed bit ops | One-day | 🔴 blocked | — | — | — | — | Target file is scalar quantize-dequant roundtrip, not packed FP4 dequant. Ill-formed against current code. [Details](ideas/021-fp4-dequant-packed-bit-ops.md) |
 | 022 | Quantized int4 GEMV: simdgroup_matrix multiply | One-day | 🔴 blocked | — | — | — | — | `simdgroup_matrix_multiply` is a GEMM primitive, not GEMV. GEMV has N=1; using it requires padding and discarding 7/8 of work. MLX's own qmv kernels use scalar dequant+simd_sum. [Details](ideas/022-dequant-gemv-simdgroup-matmul.md) |
 | 023–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
-| 036–055 | *(multi-day items)* | Multi-day | ⚪ not-started | — | — | — | — | |
+| 041 | schedule.rs: software pipelining | Codegen | 🔴 blocked | — | — | — | — | Target pass is a tile annotator, not a loop scheduler. Needs new pass. [Details](ideas/041-schedule-software-pipelining.md) |
+| 042 | licm.rs: hoist gather indices | Codegen | ⚪ no-op | — | — | — | — | Already hoists loop-invariant `Load` from read-only params. [Details](ideas/042-licm-hoist-gather-indices.md) |
+| 043 | cse.rs: extend across simdgroup boundaries | Codegen | ⚠️ feasible | — | — | — | — | Block-local CSE misses cross-branch common subexpressions. Needs re-scoping. [Details](ideas/043-cse-across-simdgroup-boundaries.md) |
+| 044 | if_conversion.rs: predicate tiny ifs | Codegen | ⚪ no-op | — | — | — | — | Pass already handles Diamond shapes; `gemv_masked` has no `Op::If`. [Details](ideas/044-if-conversion-predicate-tiny-ifs.md) |
+| 045 | value_sink.rs: sink threadgroup stores | Codegen | 🔴 blocked | — | — | — | — | Pass excludes side-effecting ops; threadgroup-store motion is unsafe here. [Details](ideas/045-value-sink-threadgroup-stores.md) |
+| 046–055 | *(runtime / build items)* | Runtime/Build | ⚪ not-started | — | — | — | — | |
 | M1–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 
 ## Legend

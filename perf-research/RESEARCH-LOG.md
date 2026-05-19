@@ -210,6 +210,48 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+## Codegen pass assessments (ideas 41–45)
+
+### 041 — `schedule.rs`: software pipelining
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** `schedule.rs` is a tile-dimension annotation pass for `Op::Dot`, not a loop scheduler. Software pipelining would require a completely new codegen pass. [Details](ideas/041-schedule-software-pipelining.md)
+
+---
+
+### 042 — `licm.rs`: hoist gather indices when loop-invariant
+**Status:** ⚪ no-op  
+**Investigated:** 2026-05-18
+
+**Result:** LICM already hoists loop-invariant `Load` ops from read-only params. `tensor[constant_idx]` maps to `Op::Load`, which is covered. [Details](ideas/042-licm-hoist-gather-indices.md)
+
+---
+
+### 043 — `cse.rs`: extend across simdgroup boundaries
+**Status:** ⚠️ feasible (needs re-scoping)  
+**Investigated:** 2026-05-18
+
+**Result:** CSE is strictly block-local. Cross-branch CSE (e.g., common subexpressions in both arms of `Op::If`) is unimplemented and would be a real win. The "simdgroup boundary" framing is imprecise against the IR. [Details](ideas/043-cse-across-simdgroup-boundaries.md)
+
+---
+
+### 044 — `if_conversion.rs`: predicate tiny ifs in inner loops
+**Status:** ⚪ no-op  
+**Investigated:** 2026-05-18
+
+**Result:** The pass already predicates Diamond-shaped `If` blocks. `gemv_masked.rs` has no `If` in its DSL source — the mask is applied unconditionally via scalar multiply — so there is nothing to convert. [Details](ideas/044-if-conversion-predicate-tiny-ifs.md)
+
+---
+
+### 045 — `value_sink.rs`: sink threadgroup-memory stores
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** `value_sink.rs` explicitly excludes side-effecting ops, including `Op::ThreadgroupStore`. Moving threadgroup stores is unsafe without alias analysis and barrier reasoning. The hypothesized register benefit is also moot — threadgroup stores don't hold registers. [Details](ideas/045-value-sink-threadgroup-stores.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |
