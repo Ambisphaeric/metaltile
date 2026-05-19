@@ -30,7 +30,8 @@
 | 023 | Quantized GEMV: int4 pack-of-2 lookup | One-day | 🔴 blocked | — | — | — | — | Requires `half2` vector type + constant-array primitive in DSL. Per-group scale/bias makes 256-entry LUT impractical (32KB+ tg mem or 64 barriers). MLX doesn't use this. [Details](ideas/023-quantized-int4-pack-of-2-lookup.md) |
 | 024 | dequant_gather: skip dequant for cold misses | One-day | ⚪ no-op | — | — | — | — | `tile profile` does not exist. No cache-state visibility in MSL. Real fix is graph-level embedding cache, not kernel-level skip. [Details](ideas/024-dequant-gather-cold-miss-skip.md) |
 | 025 | Sort: 4-way bitonic merge | One-day | ⚠️ feasible / high risk | — | — | — | — | Current kernel at 117r (thread-limited). 4-way merge would double registers, likely spill. Real gap is MLX uses merge sort, not bitonic. [Details](ideas/025-sort-4-way-bitonic-merge.md) |
-| 026–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
+| 026 | Sampling: radix-select top-k | One-day | 🔴 blocked | — | — | — | — | Target file contains categorical sampling kernel, not top-k. No top-k kernel in MetalTile or MLX. New kernel + bench harness required. [Details](ideas/026-sampling-radix-select-topk.md) |
+| 027–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
 | 041 | schedule.rs: software pipelining | Codegen | 🔴 blocked | — | — | — | — | Target pass is a tile annotator, not a loop scheduler. Needs new pass. [Details](ideas/041-schedule-software-pipelining.md) |
 | 042 | licm.rs: hoist gather indices | Codegen | ⚪ no-op | — | — | — | — | Already hoists loop-invariant `Load` from read-only params. [Details](ideas/042-licm-hoist-gather-indices.md) |
 | 043 | cse.rs: extend across simdgroup boundaries | Codegen | ⚠️ feasible | — | — | — | — | Block-local CSE misses cross-branch common subexpressions. Needs re-scoping. [Details](ideas/043-cse-across-simdgroup-boundaries.md) |

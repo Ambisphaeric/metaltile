@@ -260,6 +260,22 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### 026 — Sampling: radix-select top-k
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** The target file `sampling.rs` contains `softmax_categorical_sample` — a softmax + inverse-CDF random-sampling kernel, not a top-k kernel. The idea assumes "current top-k probably sorts then slices," but no top-k implementation exists in MetalTile.
+
+**Findings:**
+1. **Target mismatch** — `sampling.rs` has categorical sampling, not top-k.
+2. **Bench exists but wrong op** — `tile bench -f sampling` runs `softmax_categorical_sample`, which is already registered.
+3. **No MLX top-k kernel** — MLX does not ship a dedicated top-k Metal kernel. Top-k is likely implemented at the framework level.
+4. **New kernel + bench harness required** — radix-select top-k would need a new `#[kernel]`, new `run_spec.rs` arm, and CPU reference for correctness.
+
+**File:** [ideas/026-sampling-radix-select-topk.md](ideas/026-sampling-radix-select-topk.md)
+
+---
+
 ## Codegen pass assessments (ideas 41–45)
 
 ### 041 — `schedule.rs`: software pipelining
