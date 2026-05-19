@@ -50,7 +50,16 @@
 | 038 | fusion.rs: epilogue fusion onto reductions | Codegen | ⚠️ feasible | — | — | — | — | Post-reduction elementwise already fused; reducing into FusedElementwise is marginal. [Details](ideas/038-fusion-epilogue-reductions.md) |
 | 039 | fusion.rs: multi-reduction in one pass | Codegen | ⚠️ feasible | — | — | — | — | Is loop fusion, not operator fusion. Needs new pass or hand-written kernel. [Details](ideas/039-fusion-multi-reduction.md) |
 | 040 | unroll.rs: register-pressure-aware unroll | Codegen | ⚠️ feasible | — | — | — | — | `register_estimate.rs` exists but is not consulted by `UnrollPass`. Prevents #006-style catastrophes. [Details](ideas/040-unroll-register-aware.md) |
-| 046–055 | *(runtime / build items)* | Runtime/Build | ⚪ not-started | — | — | — | — | |
+| 046 | Wire autotuner `lookup()` | Runtime | ⚠️ feasible | — | — | — | — | `lookup()` is a placeholder returning `None`. Cache infra exists but not wired. [Details](ideas/046-autotuner-lookup.md) |
+| 047 | PSO disk cache | Runtime | ⚠️ feasible | — | — | — | — | In-memory `PSO_CACHE` exists. Disk serialization needs `MTLDynamicLibrary` or build-time `.metallib`. [Details](ideas/047-pso-disk-cache.md) |
+| 048 | Heap-backed buffer pool | Runtime | ⚪ no-op | — | — | — | — | `BUF_POOL` already caches `MTLBuffer` by size bucket. [Details](ideas/048-heap-backed-buffer-pool.md) |
+| 049 | Reuse command buffer across bench iters | Runtime | ⚠️ feasible | — | — | — | — | `measure()` creates fresh CB per pass. Reusing changes timing semantics. [Details](ideas/049-reuse-command-buffer-bench.md) |
+| 050 | Fast-math + disable shader-validation | Runtime | ⚠️ feasible | — | — | — | — | `MTLCompileOptions` uses defaults. Setting `mathMode=Fast` + `languageVersion=Metal3_1` is a small change. [Details](ideas/050-fast-math-shader-validation.md) |
+| 051 | Pipelined sample collection | Runtime | ⚠️ feasible | — | — | — | — | Encoding all samples into one CB requires `MTLCounterSampleBuffer` for per-dispatch timing. [Details](ideas/051-pipelined-sample-collection.md) |
+| 052 | Persistent threadgroups | Runtime | 🔴 blocked | — | — | — | — | Metal has no persistent threadgroup API. `dispatch_chain` already achieves most benefit. [Details](ideas/052-persistent-threadgroups.md) |
+| 053 | Parallelize per-kernel benches | CLI | ⚠️ feasible | — | — | — | — | Multiple queues possible but DVFS/cache pollution risks. Marginal wall-time win. [Details](ideas/053-parallel-bench-per-kernel.md) |
+| 054 | `tile bench --compare-against` | CLI | ⚠️ feasible | — | — | — | — | JSON save/load exists. Inline diff is a thin UX layer. [Details](ideas/054-bench-compare-against-baseline.md) |
+| 055 | Precompile `.metallib` per GPU family | Build | 🔴 blocked | — | — | — | — | MetalTile generates MSL at runtime (JIT). Build-time pre-compilation is infeasible. [Details](ideas/055-precompile-metallib-gpu-family.md) |
 | M1–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 
 ## Legend

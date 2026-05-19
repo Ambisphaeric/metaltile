@@ -446,6 +446,88 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+## Runtime / build / CLI assessments (ideas 46–55)
+
+### 046 — Wire the autotuner `lookup()`
+**Status:** ⚠️ feasible (medium effort)  
+**Investigated:** 2026-05-18
+
+**Result:** `TuneCache::lookup()` is a placeholder returning `None`. The cache infrastructure (save/load, `TuneEntry`, `ShapeBucket`) exists but lookup doesn't bucket `ConstExprValues`. Plumbing it into `Context::dispatch` would unlock schedule selection. [Details](ideas/046-autotuner-lookup.md)
+
+---
+
+### 047 — PSO disk cache
+**Status:** ⚠️ feasible (needs re-scoping)  
+**Investigated:** 2026-05-18
+
+**Result:** `PSO_CACHE` in `context.rs` is in-memory only (per-process). Metal `MTLComputePipelineState` cannot be serialized directly. Runtime `.metallib` caching is possible via `MTLDynamicLibrary` (Metal 3.1+). [Details](ideas/047-pso-disk-cache.md)
+
+---
+
+### 048 — Heap-backed buffer pool
+**Status:** ⚪ no-op  
+**Investigated:** 2026-05-18
+
+**Result:** `BUF_POOL` in `context.rs` already caches `MTLBuffer` objects by `(next_power_of_two(len), storage_mode)`. Functionally equivalent to a heap allocator for MetalTile's use case. [Details](ideas/048-heap-backed-buffer-pool.md)
+
+---
+
+### 049 — Reuse command buffer across bench iterations
+**Status:** ⚠️ feasible (changes semantics)  
+**Investigated:** 2026-05-18
+
+**Result:** `runner.rs` `measure()` creates a fresh `MTLCommandBuffer` per pass. Reusing one buffer for all warmups+samples reduces driver overhead but requires `MTLCounterSampleBuffer` for per-dispatch timing. [Details](ideas/049-reuse-command-buffer-bench.md)
+
+---
+
+### 050 — Fast-math + disable shader-validation in release
+**Status:** ⚠️ feasible (small)  
+**Investigated:** 2026-05-18
+
+**Result:** `MTLCompileOptions` uses defaults in both `context.rs` and `runner.rs`. Setting `mathMode = Fast` and `languageVersion = Metal3_1` is a two-line change. Shader validation is already off outside Xcode. [Details](ideas/050-fast-math-shader-validation.md)
+
+---
+
+### 051 — Bench: pipelined sample collection
+**Status:** ⚠️ feasible (medium effort)  
+**Investigated:** 2026-05-18
+
+**Result:** `measure()` does serial warmup + samples with `waitUntilCompleted` per pass. Encoding all into one command buffer requires `MTLCounterSampleBuffer` for per-dispatch timestamps. [Details](ideas/051-pipelined-sample-collection.md)
+
+---
+
+### 052 — Persistent threadgroups
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** Metal has no persistent threadgroup or work-queue API. `dispatch_chain` in `context.rs` already dispatches multiple kernels through a single command buffer, achieving most of the practical benefit. [Details](ideas/052-persistent-threadgroups.md)
+
+---
+
+### 053 — CLI: parallelize per-kernel benches
+**Status:** ⚠️ feasible (risky)  
+**Investigated:** 2026-05-18
+
+**Result:** Serial bench flow could be parallelized with multiple queues, but DVFS pollution and SLC cache interference make results less reliable. Marginal wall-time win. [Details](ideas/053-parallel-bench-per-kernel.md)
+
+---
+
+### 054 — CLI: `tile bench --compare-against <baseline.json>`
+**Status:** ⚠️ feasible (small UX)  
+**Investigated:** 2026-05-18
+
+**Result:** JSON save/load already exists. Inline diff against a baseline is a thin UX layer — one-day effort. [Details](ideas/054-bench-compare-against-baseline.md)
+
+---
+
+### 055 — Build: precompile `.metallib` per Apple GPU family
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** MetalTile generates MSL at runtime via `MslGenerator`. Build-time pre-compilation is infeasible due to JIT MSL + shape/dtype/fn_const combinatorics. [Details](ideas/055-precompile-metallib-gpu-family.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |
