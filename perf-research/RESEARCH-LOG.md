@@ -210,6 +210,22 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### 023 — Quantized GEMV: int4 pack-of-2 lookup
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** The hypothesis proposes a 256-entry `half2` LUT for dequantizing pairs of int4 values with a single load. The target file (`mlx/quantized.rs`) contains scalar GEMV and dequantize kernels that extract int4 values via shift+mask, then apply per-group `scale * q + bias`.
+
+**Blockers:**
+1. **No `half2` vector type in user-facing DSL.** `load()` is scalar. `VectorLoad` exists at the IR level but is codegen-generated, not author-writable.
+2. **No constant-array / LUT primitive.** `threadgroup_alloc` creates buffers but cannot be initialized with compile-time data. Runtime init costs stores + barrier.
+3. **Per-group scale/bias dependency.** A LUT storing pre-dequantized values would need to encode scale/bias per group. For `k=4096, group_size=64`, that's 64 groups per row. A 256-entry `f16` LUT per group is `64 × 256 × 2 = 32 KB` — exactly the threadgroup memory limit. A `f32` LUT exceeds it. Rebuilding per group adds 64 barriers per threadgroup.
+4. **MLX doesn't use this.** `qmv_fast_impl` uses scalar dequant + `simd_sum`, confirming this is not a standard optimization path.
+
+**File:** [ideas/023-quantized-int4-pack-of-2-lookup.md](ideas/023-quantized-int4-pack-of-2-lookup.md)
+
+---
+
 ## Codegen pass assessments (ideas 41–45)
 
 ### 041 — `schedule.rs`: software pipelining
