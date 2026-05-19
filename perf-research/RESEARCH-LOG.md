@@ -290,6 +290,20 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### 028 — logsumexp: fuse max + sum-exp
+**Status:** ⚪ no-op  
+**Investigated:** 2026-05-18
+
+**Result:** The target kernel `mt_logsumexp` is already a single-pass online logsumexp implementation. It uses the running-update trick: `nz = nz * exp(pm - nm) + sum(exp(vi - nm))` where `nm = max(pm, cm)`.
+
+**MLX reference:** MLX has `logsumexp` (two-pass) and `logsumexp_looped` (one-pass). MetalTile matches `logsumexp_looped` and is already faster: **MT%=154% (f32), 238% (f16), 237% (bf16)** at 54r.
+
+**Conclusion:** The optimization is already implemented.
+
+**File:** [ideas/028-logsumexp-fuse-max-sum-exp.md](ideas/028-logsumexp-fuse-max-sum-exp.md)
+
+---
+
 ## Codegen pass assessments (ideas 41–45)
 
 ### 041 — `schedule.rs`: software pipelining
