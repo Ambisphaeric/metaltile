@@ -6,8 +6,8 @@
 | # | Name | Category | Status | Worktree | Baseline Snap | Final Snap | Verdict | Notes |
 |---|------|----------|--------|----------|---------------|------------|---------|-------|
 | 001 | SDPA tile: bump BLOCK_M on f16/bf16 | Quick-win | 🔴 blocked | `../metaltile-perf-idea-1` | — | — | — | Target kernel is scalar vector; BLOCK_M constant does not exist. Needs re-scope or prerequisite tiled kernel. [Details](ideas/001-sdpa-tile-block-m.md) |
-| 002 | SDPA: BLOCK_N 64 → 128 on D=128 | Quick-win | ⚪ not-started | — | — | — | — | |
-| 003 | SDPA: split-K for low-occupancy H=8 | Quick-win | ⚪ not-started | — | — | — | — | |
+| 002 | SDPA: BLOCK_N 64 → 128 on D=128 | Quick-win | 🔴 blocked | — | — | — | — | Same blocker as #1: scalar vector kernel, no BLOCK_N constant. [Details](ideas/002-sdpa-block-n.md) |
+| 003 | SDPA: split-K for low-occupancy H=8 | Quick-win | 🔴 blocked | — | — | — | — | Requires split-K kernel variant + dispatcher changes + merge kernel. Multi-day effort. [Details](ideas/003-sdpa-split-k.md) |
 | 004 | SDPA-vector decode: GQA-aware K/V reuse | Quick-win | 🔴 blocked | `../metaltile-perf-idea-4` | — | — | — | `simd_shuffle` can't cross threadgroups; real fix is dispatch-shape change + cooperative tg-mem K/V caching. [Details](ideas/004-sdpa-gqa-kv-reuse.md) |
 | 005 | SDPA-vector: 8-wide vec loads f16/bf16 | Quick-win | 🔴 blocked | — | — | — | — | DSL has no vector-load primitive. [Details](ideas/005-sdpa-vec8-loads.md) |
 | 006 | RMS-norm: unroll 4 → 8 | Quick-win | ⚫ abandoned | `../metaltile-perf-idea-6` | — | — | Regression | 8-wide unroll pushes register pressure to 162r (was 9r), occupancy drops to 73%, kernel becomes register-limited. Reverted. [Details](ideas/006-rms-norm-unroll-8.md) |
