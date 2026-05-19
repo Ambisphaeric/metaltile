@@ -578,6 +578,38 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### M7 — Speculative-decode batched-Q SDPA
+**Status:** ⚠️ feasible (high effort, high impact)  
+**Investigated:** 2026-05-18
+
+**Result:** `sdpa_decode` is single-Q per head. Adding a `batch_q` dimension requires K independent softmax states and K output accumulators. KV bandwidth is amortized K×. Register pressure is the main risk. [Details](ideas/m7-speculative-decode-batched-q-sdpa.md)
+
+---
+
+### M8 — Codegen → Metal 3.2 tensor descriptors
+**Status:** ⚠️ feasible (blocked on Metal 3.2 availability)  
+**Investigated:** 2026-05-18
+
+**Result:** MetalTile targets Metal 3.1 (`bfloat`, `async_copy`). Metal 3.2 tensor descriptors (TMA-like async copy + autoswizzle) require new MSL emission path + dual-path fallback. Blocked on M4 hardware + macOS 15 adoption. [Details](ideas/m8-metal-3-2-tensor-descriptors.md)
+
+---
+
+### M9 — CPU SIMD fallback codegen (NEON)
+**Status:** ⚠️ feasible (project-scale)  
+**Investigated:** 2026-05-18
+
+**Result:** A second codegen backend (`NeonGenerator`) using `std::simd` is architecturally possible but requires duplicating the entire MSL emission layer (~2000+ lines). A scalar reference interpreter for CI correctness is more pragmatic. [Details](ideas/m9-cpu-neon-fallback.md)
+
+---
+
+### M10 — Operator-cost predictor for op-fusion decisions
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** Requires graph IR (M4), cross-kernel codegen (M4), and learned model (M1) — none exist. M10 is essentially M4 + M1 combined. Not actionable until graph IR exists. [Details](ideas/m10-operator-cost-predictor.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |

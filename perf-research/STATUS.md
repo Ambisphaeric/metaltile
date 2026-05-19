@@ -66,7 +66,10 @@
 | M4 | Auto-fuse arbitrary elementwise DAGs | Moonshot | 🔴 blocked | — | — | — | — | No runtime graph IR or cross-kernel codegen. `dispatch_chain` is pragmatic limit. [Details](ideas/m4-auto-fuse-elementwise-dags.md) |
 | M5 | Block-sparse SDPA | Moonshot | ⚠️ feasible | — | — | — | — | Sliding-window skip logic in `sdpa_decode` is a localized kernel change. High impact for long context. [Details](ideas/m5-block-sparse-sdpa.md) |
 | M6 | KV-cache via Metal heaps | Moonshot | ⚠️ feasible (marginal) | — | — | — | — | `kv_cache_update` already writes in-place. No copy exists at kernel level. [Details](ideas/m6-kv-cache-metal-heaps.md) |
-| M7–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
+| M7 | Speculative-decode batched-Q SDPA | Moonshot | ⚠️ feasible | — | — | — | — | New kernel variant: batch_q>1 in `sdpa_decode`. KV amortization is real win. [Details](ideas/m7-speculative-decode-batched-q-sdpa.md) |
+| M8 | Metal 3.2 tensor descriptors | Moonshot | ⚠️ feasible | — | — | — | — | Blocked on Metal 3.2 hardware availability. Codegen infra ready for dual path. [Details](ideas/m8-metal-3-2-tensor-descriptors.md) |
+| M9 | CPU SIMD fallback (NEON) | Moonshot | ⚠️ feasible | — | — | — | — | Project-scale. Scalar reference interpreter is more pragmatic first step. [Details](ideas/m9-cpu-neon-fallback.md) |
+| M10 | Operator-cost predictor | Moonshot | 🔴 blocked | — | — | — | — | Requires graph IR (M4) + cross-kernel codegen + learned model (M1). [Details](ideas/m10-operator-cost-predictor.md) |
 
 ## Legend
 - 🔴 **blocked** — prerequisite missing or idea ill-formed against current code
