@@ -9,13 +9,13 @@
 | 002 | SDPA: BLOCK_N 64 → 128 on D=128 | Quick-win | ⚪ not-started | — | — | — | — | |
 | 003 | SDPA: split-K for low-occupancy H=8 | Quick-win | ⚪ not-started | — | — | — | — | |
 | 004 | SDPA-vector decode: GQA-aware K/V reuse | Quick-win | 🔴 blocked | `../metaltile-perf-idea-4` | — | — | — | `simd_shuffle` can't cross threadgroups; real fix is dispatch-shape change + cooperative tg-mem K/V caching. [Details](ideas/004-sdpa-gqa-kv-reuse.md) |
-| 005 | SDPA-vector: 8-wide vec loads f16/bf16 | Quick-win | 🔴 blocked | — | — | — | — | DSL has no vector-load primitive. [Details](ideas/005-010-feasibility-study.md#5-sdpa-vector-8-wide-vectorized-loads-on-f16bf16) |
+| 005 | SDPA-vector: 8-wide vec loads f16/bf16 | Quick-win | 🔴 blocked | — | — | — | — | DSL has no vector-load primitive. [Details](ideas/005-sdpa-vec8-loads.md) |
 | 006 | RMS-norm: unroll 4 → 8 | Quick-win | ⚫ abandoned | `../metaltile-perf-idea-6` | — | — | Regression | 8-wide unroll pushes register pressure to 162r (was 9r), occupancy drops to 73%, kernel becomes register-limited. Reverted. [Details](ideas/006-rms-norm-unroll-8.md) |
 | 007 | Softmax: simdgroup reduce for small N | Quick-win | 🟢 done | `../metaltile-perf-idea-7` | — | — | Small win | tpg=32 beats tpg=256 by ~1.65× on N=32. Adds `softmax_small_n` bench variant. Real value is dispatch heuristic. [Details](ideas/007-softmax-small-n.md) |
-| 008 | Softmax: float4 loads on f16/bf16 | Quick-win | 🔴 blocked | — | — | — | — | DSL has no vector-load primitive. Same blocker as #5. [Details](ideas/005-010-feasibility-study.md#8-softmax-float4-loads-on-f16bf16-inner-loop) |
-| 009 | LayerNorm: mirror RMS-norm tweaks | Quick-win | ⚪ not-started | — | — | — | — | Same as #6: trivial kernel edit, need param adjustment. [Details](ideas/005-010-feasibility-study.md#9-layernorm-mirror-rms-norm-tweaks) |
+| 008 | Softmax: float4 loads on f16/bf16 | Quick-win | 🔴 blocked | — | — | — | — | DSL has no vector-load primitive. Same blocker as #5. [Details](ideas/008-softmax-float4-loads.md) |
+| 009 | LayerNorm: mirror RMS-norm tweaks | Quick-win | ⚫ abandoned | — | — | — | — | Same register pressure issue as #6. Not benched — predicted worse due to more live state. [Details](ideas/009-layernorm-mirror-rms.md) |
 | 010 | GEMV: tune `simd_per_tg` per K | Quick-win | 🟢 done | `../metaltile-perf-idea-10` | `010-run2.json` | `010-run2.json` | Small win for f16 | tpg=512 beats baseline by +1.8% on f16. tpg=1024 is a −20% regression on f16. f32/bf16 flat. [Details](ideas/010-gemv-tpg-sweep.md) |
-| 011 | GEMV-masked: dense fallback | Quick-win | ⚪ not-started | — | — | — | — | |
+| 011 | GEMV-masked: dense fallback | Quick-win | 🔴 blocked | — | — | — | — | Dispatcher-level heuristic. `#[bench_kernel]` doesn't support runtime kernel selection. [Details](ideas/011-gemv-masked-dense-fallback.md) |
 | 012 | all_reduce: two-stage simd→tg | Quick-win | ⚪ no-op | — | — | — | — | Already optimal — `tile inspect` confirms. [Details](ideas/012-020-feasibility-study.md#12-all_reduce-two-stage-simdthreadgroup) |
 | 013 | row-reduce: rows-per-tg small N | Quick-win | ⚠️ feasible | — | — | — | — | Dispatch-level change. Small-N only. [Details](ideas/012-020-feasibility-study.md#13-row-reduce-rows-per-threadgroup-when-n-is-small) |
 | 014 | scan: simd_prefix_inclusive_sum | Quick-win | ⚪ no-op | — | — | — | — | Already implemented. [Details](ideas/012-020-feasibility-study.md#14-scan-prefer-simd_prefix_inclusive_sum) |
