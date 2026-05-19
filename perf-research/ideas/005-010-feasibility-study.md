@@ -83,7 +83,9 @@ The bench macro currently hardcodes `n=4096, tpg=1024`. To get a valid 8-wide di
 - On M1 (the user's target), there *may* be headroom, but it's speculative.
 
 ### Verdict
-⚠️ **Feasible with caveat.** The kernel edit is a 5-minute copy-paste. The caveat is you **must** change `tpg=512` (or `n=8192`) to make the geometry valid. If you're willing to modify the bench macro constant, this is a genuine Quick-win.
+⚠️ **Feasible with caveat — BUT tested and abandoned.** The kernel edit is a 5-minute copy-paste, and the geometry works with `tpg=512`. However, the actual bench result showed **register pressure exploding from 9r → 162r**, occupancy dropping to **73%**, and the kernel becoming **register-limited**. Throughput regressed by **−50% to −80%** across dtypes. The 8-wide unroll holds too many live values for the Apple GPU register file.
+
+**Abandoned** — see [006-rms-norm-unroll-8.md](006-rms-norm-unroll-8.md) for full data.
 
 ---
 
