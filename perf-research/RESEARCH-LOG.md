@@ -546,6 +546,14 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### M3 — Persistent-kernel graph capture
+**Status:** 🔴 blocked  
+**Investigated:** 2026-05-18
+
+**Result:** Metal has no graph capture API (unlike CUDA `cudaGraph`). `dispatch_chain` in `context.rs` already dispatches multiple kernels through a single command buffer with private intermediate buffers — eliminating most per-dispatch overhead. A persistent mega-kernel would require cross-kernel MSL fusion (M4) plus a device-memory work queue. [Details](ideas/m3-persistent-kernel-graph-capture.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |

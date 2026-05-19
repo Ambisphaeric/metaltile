@@ -62,7 +62,8 @@
 | 055 | Precompile `.metallib` per GPU family | Build | 🔴 blocked | — | — | — | — | MetalTile generates MSL at runtime (JIT). Build-time pre-compilation is infeasible. [Details](ideas/055-precompile-metallib-gpu-family.md) |
 | M1 | ML-driven autotuner | Moonshot | ⚠️ feasible | — | — | — | — | Cache + feature extraction exist. Needs data collection + model training. [Details](ideas/m1-ml-driven-autotuner.md) |
 | M2 | AMX / ANE offload for small-batch GEMM | Moonshot | 🔴 blocked | — | — | — | — | No public AMX API; CoreML overhead dominates. [Details](ideas/m2-amx-ane-offload.md) |
-| M3–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
+| M3 | Persistent-kernel graph capture | Moonshot | 🔴 blocked | — | — | — | — | Metal has no graph capture API. `dispatch_chain` already eliminates most per-dispatch overhead. [Details](ideas/m3-persistent-kernel-graph-capture.md) |
+| M4–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 
 ## Legend
 - 🔴 **blocked** — prerequisite missing or idea ill-formed against current code
