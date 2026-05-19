@@ -404,6 +404,48 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+## Codegen pass assessments (ideas 36–40)
+
+### 036 — `vectorize.rs`: 8-wide on f16/bf16
+**Status:** ⚪ no-op  
+**Investigated:** 2026-05-18
+
+**Result:** `MAX_VEC_LEN = 8` is already hardcoded. BF16 is already in the `is_vectorizable` set. The MSL emitter decomposes `float8`/`half8` into `float2x4` when native 8-wide is unavailable. The hypothesis predates the CODEGEN_OVERHAUL upgrade. [Details](ideas/036-vectorize-8-wide-f16-bf16.md)
+
+---
+
+### 037 — `vectorize.rs`: detect strided-but-aligned stores
+**Status:** ⚠️ feasible (needs re-scoping)  
+**Investigated:** 2026-05-18
+
+**Result:** The pass coalesces contiguous single-buffer accesses (`src[base+k]`). Strided/interleaved patterns (e.g., `store(c[i], v0); store(d[i], v1)`) are not handled. This is a genuine gap but requires SLP/loop-level vectorization, not just load-store coalescing. [Details](ideas/037-vectorize-strided-aligned-stores.md)
+
+---
+
+### 038 — `fusion.rs`: epilogue fusion onto reductions
+**Status:** ⚠️ feasible (marginal)  
+**Investigated:** 2026-05-18
+
+**Result:** The pass already fuses post-reduction elementwise chains into `FusedElementwise`. Since MetalTile kernels are single-dispatch, there is no separate "reduction kernel" to fuse into — the elementwise ops are already in the same dispatch. Extending `is_fusible` to include `Reduce` would be a small change with limited benefit. [Details](ideas/038-fusion-epilogue-reductions.md)
+
+---
+
+### 039 — `fusion.rs`: multi-reduction in one pass
+**Status:** ⚠️ feasible (needs re-scoping)  
+**Investigated:** 2026-05-18
+
+**Result:** Multi-reduction fusion (e.g., computing mean and variance in one loop) is **loop fusion**, not operator fusion. The current `fusion.rs` merges expression trees within a block. A new `loop_fusion.rs` pass would be needed, or LayerNorm can be written as a hand-written kernel. [Details](ideas/039-fusion-multi-reduction.md)
+
+---
+
+### 040 — `unroll.rs`: register-pressure-aware unroll count
+**Status:** ⚠️ feasible (high value)  
+**Investigated:** 2026-05-18
+
+**Result:** `UnrollPass` uses a fixed `factor` (default 4, max 8) with no register check. `register_estimate.rs` already exists but is not consulted by the unroller. Connecting them would have prevented idea #006's register explosion (9r → 162r). Partial unrolling (unroll by factor even when trip_count > factor) is also missing. [Details](ideas/040-unroll-register-aware.md)
+
+---
+
 ## Commits on `dev` ready for review
 
 | Commit | Message | Status |

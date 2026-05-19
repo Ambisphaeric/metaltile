@@ -45,6 +45,11 @@
 | 043 | cse.rs: extend across simdgroup boundaries | Codegen | ⚠️ feasible | — | — | — | — | Block-local CSE misses cross-branch common subexpressions. Needs re-scoping. [Details](ideas/043-cse-across-simdgroup-boundaries.md) |
 | 044 | if_conversion.rs: predicate tiny ifs | Codegen | ⚪ no-op | — | — | — | — | Pass already handles Diamond shapes; `gemv_masked` has no `Op::If`. [Details](ideas/044-if-conversion-predicate-tiny-ifs.md) |
 | 045 | value_sink.rs: sink threadgroup stores | Codegen | 🔴 blocked | — | — | — | — | Pass excludes side-effecting ops; threadgroup-store motion is unsafe here. [Details](ideas/045-value-sink-threadgroup-stores.md) |
+| 036 | vectorize.rs: 8-wide on f16/bf16 | Codegen | ⚪ no-op | — | — | — | — | `MAX_VEC_LEN=8` already in pass; BF16 already vectorizable. [Details](ideas/036-vectorize-8-wide-f16-bf16.md) |
+| 037 | vectorize.rs: strided-but-aligned stores | Codegen | ⚠️ feasible | — | — | — | — | Pass only coalesces single-buffer contiguous. Strided/interleaved needs re-scope. [Details](ideas/037-vectorize-strided-aligned-stores.md) |
+| 038 | fusion.rs: epilogue fusion onto reductions | Codegen | ⚠️ feasible | — | — | — | — | Post-reduction elementwise already fused; reducing into FusedElementwise is marginal. [Details](ideas/038-fusion-epilogue-reductions.md) |
+| 039 | fusion.rs: multi-reduction in one pass | Codegen | ⚠️ feasible | — | — | — | — | Is loop fusion, not operator fusion. Needs new pass or hand-written kernel. [Details](ideas/039-fusion-multi-reduction.md) |
+| 040 | unroll.rs: register-pressure-aware unroll | Codegen | ⚠️ feasible | — | — | — | — | `register_estimate.rs` exists but is not consulted by `UnrollPass`. Prevents #006-style catastrophes. [Details](ideas/040-unroll-register-aware.md) |
 | 046–055 | *(runtime / build items)* | Runtime/Build | ⚪ not-started | — | — | — | — | |
 | M1–M10 | *(moonshots)* | Moonshot | ⚪ not-started | — | — | — | — | |
 
