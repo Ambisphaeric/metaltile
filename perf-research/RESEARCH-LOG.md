@@ -242,6 +242,24 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### 025 — Sort: 4-way bitonic merge
+**Status:** ⚠️ feasible / high risk  
+**Investigated:** 2026-05-18
+
+**Result:** The target kernel `mt_sort` implements bitonic sort for 1024 elements with `tpg=256`, each thread handling 4 elements. Baseline: **117r, thread-limited, 76–77% of MLX**.
+
+**Analysis:**
+- A 4-way bitonic merge would fuse 4 compare-swaps into one 8-element merge, halving tg memory ops for stages where the partner block is contiguous (distance ≥ 4).
+- **Register risk:** The kernel is already at 117r. Holding 8 live scalars (4 local + 4 partner) plus merge temporaries would likely push usage past the spill threshold (~128r). Idea #6 showed register explosions can destroy performance.
+- **Algorithm mismatch:** MLX uses **merge sort** (`BlockMergeSort`), not bitonic sort. The 23% performance gap is structural, not stride-related. A merge-sort port would be a separate multi-day idea.
+- **DSL limitation:** No register-array type; 8 scalars require 8 separate variables, each consuming a physical register slot.
+
+**Decision:** Technically feasible but high risk and low expected value. The real optimization is algorithmic (bitonic → merge sort), not stride width.
+
+**File:** [ideas/025-sort-4-way-bitonic-merge.md](ideas/025-sort-4-way-bitonic-merge.md)
+
+---
+
 ## Codegen pass assessments (ideas 41–45)
 
 ### 041 — `schedule.rs`: software pipelining
