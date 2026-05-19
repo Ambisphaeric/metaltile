@@ -226,6 +226,22 @@ The hypothesis describes a **weight-dequantization** optimization (8 FP4 values 
 
 ---
 
+### 024 — dequant_gather: skip dequant for cold misses
+**Status:** ⚪ no-op / premature  
+**Investigated:** 2026-05-18
+
+**Result:** The hypothesis proposes profiling L1 cache misses for `dequant_gather` and skipping dequantization on cold misses. The target kernel is a quantized embedding-table gather: each thread loads a token index, fetches 1–2 `u32` words from packed weights, extracts a quantized value, loads scale/bias, dequantizes, and stores.
+
+**Findings:**
+1. **`tile profile` does not exist.** The CLI has `bench`, `build`, `inspect`, `device`, `snap`, `diff` — no profiling or counter-sampling command.
+2. **No cache-state visibility in MSL.** Metal does not expose L1 hit/miss counters or cache-state predicates to shader code. A kernel cannot branch on "is this data in cache?"
+3. **Kernel is already memory-bound.** The dequantization is 2 FMAs; the bottleneck is 4–5 device-memory loads per thread. Skipping dequant would not materially reduce memory traffic.
+4. **Real fix is graph-level.** A dispatcher-level dequantized-embedding cache (keep hot tokens unpacked in device memory) is the correct architecture, but requires graph-scheduler support — not a kernel tweak.
+
+**File:** [ideas/024-dequant-gather-cold-miss-skip.md](ideas/024-dequant-gather-cold-miss-skip.md)
+
+---
+
 ## Codegen pass assessments (ideas 41–45)
 
 ### 041 — `schedule.rs`: software pipelining

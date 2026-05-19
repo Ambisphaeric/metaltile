@@ -28,7 +28,8 @@
 | 021 | FP4 dequant: packed bit ops | One-day | 🔴 blocked | — | — | — | — | Target file is scalar quantize-dequant roundtrip, not packed FP4 dequant. Ill-formed against current code. [Details](ideas/021-fp4-dequant-packed-bit-ops.md) |
 | 022 | Quantized int4 GEMV: simdgroup_matrix multiply | One-day | 🔴 blocked | — | — | — | — | `simdgroup_matrix_multiply` is a GEMM primitive, not GEMV. GEMV has N=1; using it requires padding and discarding 7/8 of work. MLX's own qmv kernels use scalar dequant+simd_sum. [Details](ideas/022-dequant-gemv-simdgroup-matmul.md) |
 | 023 | Quantized GEMV: int4 pack-of-2 lookup | One-day | 🔴 blocked | — | — | — | — | Requires `half2` vector type + constant-array primitive in DSL. Per-group scale/bias makes 256-entry LUT impractical (32KB+ tg mem or 64 barriers). MLX doesn't use this. [Details](ideas/023-quantized-int4-pack-of-2-lookup.md) |
-| 024–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
+| 024 | dequant_gather: skip dequant for cold misses | One-day | ⚪ no-op | — | — | — | — | `tile profile` does not exist. No cache-state visibility in MSL. Real fix is graph-level embedding cache, not kernel-level skip. [Details](ideas/024-dequant-gather-cold-miss-skip.md) |
+| 025–035 | *(one-day items)* | One-day | ⚪ not-started | — | — | — | — | |
 | 041 | schedule.rs: software pipelining | Codegen | 🔴 blocked | — | — | — | — | Target pass is a tile annotator, not a loop scheduler. Needs new pass. [Details](ideas/041-schedule-software-pipelining.md) |
 | 042 | licm.rs: hoist gather indices | Codegen | ⚪ no-op | — | — | — | — | Already hoists loop-invariant `Load` from read-only params. [Details](ideas/042-licm-hoist-gather-indices.md) |
 | 043 | cse.rs: extend across simdgroup boundaries | Codegen | ⚠️ feasible | — | — | — | — | Block-local CSE misses cross-branch common subexpressions. Needs re-scoping. [Details](ideas/043-cse-across-simdgroup-boundaries.md) |
