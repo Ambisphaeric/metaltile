@@ -1,0 +1,5 @@
+{"device":"Apple M1 Max","results":[
+  {"op":"softmax","shape":"B=1024 N=4096 f32","metric":"GB/s","ref":189.057,"mt":182.999},
+  {"op":"softmax","shape":"B=1024 N=4096 f16","metric":"GB/s","ref":156.291,"mt":158.594},
+  {"op":"softmax","shape":"B=1024 N=4096 bf16","metric":"GB/s","ref":79.069,"mt":148.575}
+]}

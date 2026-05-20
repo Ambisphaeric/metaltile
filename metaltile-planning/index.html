@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MetalTile Perf Planning Board</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-hover: #1f242c;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-secondary: #8b949e;
+      --blocked: #f85149;
+      --feasible: #d29922;
+      --done: #3fb950;
+      --noop: #8b949e;
+      --abandoned: #a371f7;
+      --inprogress: #58a6ff;
+      --accent: #58a6ff;
+      --shadow: 0 4px 12px rgba(0,0,0,0.4);
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: auto;
+    }
+    header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header h1 .badge {
+      font-size: 0.7rem;
+      background: var(--border);
+      padding: 3px 8px;
+      border-radius: 12px;
+      color: var(--text-secondary);
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .controls input, .controls select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .controls input:focus, .controls select:focus {
+      border-color: var(--accent);
+    }
+    .controls input { min-width: 240px; }
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .stat-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+    .board {
+      display: flex;
+      gap: 16px;
+      padding: 20px 24px;
+      min-width: max-content;
+      align-items: flex-start;
+    }
+    .column {
+      width: 320px;
+      min-width: 280px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 120px);
+    }
+    .column-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: grab;
+      user-select: none;
+    }
+    .column-header:active { cursor: grabbing; }
+    .column-count {
+      font-size: 0.8rem;
+      background: var(--bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: var(--text-secondary);
+    }
+    .cards {
+      padding: 10px;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 100px;
+    }
+    .cards.drag-over {
+      background: rgba(88, 166, 255, 0.08);
+      border-radius: 6px;
+    }
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      cursor: grab;
+      transition: transform 0.1s, box-shadow 0.1s;
+      position: relative;
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+      border-color: #484f58;
+    }
+    .card.dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .card-id {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface-hover);
+      color: var(--text-secondary);
+    }
+    .card-category {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .card-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.35;
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+    .card-notes {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-footer {
+      margin-top: 8px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface-hover);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .chip.blocked { color: var(--blocked); border-color: rgba(248,81,73,0.3); }
+    .chip.feasible { color: var(--feasible); border-color: rgba(210,153,34,0.3); }
+    .chip.done { color: var(--done); border-color: rgba(63,185,80,0.3); }
+    .chip.noop { color: var(--noop); border-color: rgba(139,148,158,0.3); }
+    .chip.abandoned { color: var(--abandoned); border-color: rgba(163,113,247,0.3); }
+
+    /* Detail modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 640px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-header h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    .modal-body p { margin-bottom: 12px; }
+    .modal-body a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .modal-body a:hover { text-decoration: underline; }
+    .modal-meta {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px 16px;
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    .modal-meta dt { color: var(--text-secondary); }
+    .modal-meta dd { color: var(--text); }
+
+    @media (max-width: 768px) {
+      .board { flex-direction: column; align-items: stretch; }
+      .column { width: 100%; max-height: none; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .stats { margin-left: 0; margin-top: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚡ MetalTile Perf Planning <span class="badge" id="total-badge">0 ideas</span></h1>
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search ideas...">
+      <select id="filter-category">
+        <option value="">All categories</option>
+        <option value="Quick-win">Quick-wins</option>
+        <option value="One-day">One-day</option>
+        <option value="Codegen">Codegen passes</option>
+        <option value="Runtime">Runtime / Build</option>
+        <option value="CLI">CLI</option>
+        <option value="Moonshot">Moonshots</option>
+      </select>
+      <div class="stats" id="stats"></div>
+    </div>
+  </header>
+
+  <div class="board" id="board"></div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title"></h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    const COLUMNS = [
+      { id: 'blocked', label: '🔴 Blocked', color: 'var(--blocked)' },
+      { id: 'feasible', label: '⚠️ Feasible', color: 'var(--feasible)' },
+      { id: 'no-op', label: '⚪ No-op / Marginal', color: 'var(--noop)' },
+      { id: 'done', label: '🟢 Done', color: 'var(--done)' },
+      { id: 'abandoned', label: '⚫ Abandoned', color: 'var(--abandoned)' },
+    ];
+
+    let ideas = [];
+    let draggedCard = null;
+    let draggedSourceColumn = null;
+
+    async function loadData() {
+      const res = await fetch('data.json');
+      ideas = await res.json();
+      renderBoard();
+      updateStats();
+    }
+
+    function getColumnCards(colId) {
+      let filtered = ideas;
+      const search = document.getElementById('search').value.toLowerCase();
+      const cat = document.getElementById('filter-category').value;
+      if (search) {
+        filtered = filtered.filter(i =>
+          (i.name + ' ' + i.notes + ' ' + i.id).toLowerCase().includes(search)
+        );
+      }
+      if (cat) {
+        filtered = filtered.filter(i => i.category === cat);
+      }
+      return filtered.filter(i => i.status === colId || (colId === 'no-op' && (i.status === 'no-op' || i.status === 'marginal')));
+    }
+
+    function renderBoard() {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+
+      COLUMNS.forEach(col => {
+        const cards = getColumnCards(col.id);
+        const colEl = document.createElement('div');
+        colEl.className = 'column';
+        colEl.dataset.columnId = col.id;
+        colEl.innerHTML = `
+          <div class="column-header" style="border-left: 3px solid ${col.color}; padding-left: 12px;">
+            <span>${col.label}</span>
+            <span class="column-count">${cards.length}</span>
+          </div>
+          <div class="cards" data-column="${col.id}"></div>
+        `;
+        const cardsContainer = colEl.querySelector('.cards');
+        cardsContainer.addEventListener('dragover', onDragOver);
+        cardsContainer.addEventListener('drop', onDrop);
+        cardsContainer.addEventListener('dragenter', onDragEnter);
+        cardsContainer.addEventListener('dragleave', onDragLeave);
+
+        cards.forEach(idea => {
+          const card = createCard(idea);
+          cardsContainer.appendChild(card);
+        });
+
+        board.appendChild(colEl);
+      });
+    }
+
+    function createCard(idea) {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.draggable = true;
+      div.dataset.id = idea.id;
+
+      const statusClass = idea.status === 'marginal' ? 'noop' : idea.status;
+
+      div.innerHTML = `
+        <div class="card-header">
+          <span class="card-id">${idea.id}</span>
+          <span class="card-category">${idea.category}</span>
+        </div>
+        <div class="card-title">${escapeHtml(idea.name)}</div>
+        <div class="card-notes">${escapeHtml(idea.notes)}</div>
+        <div class="card-footer">
+          <span class="chip ${statusClass}">${idea.status_emoji || idea.status}</span>
+          ${idea.verdict ? `<span class="chip">${escapeHtml(idea.verdict)}</span>` : ''}
+        </div>
+      `;
+
+      div.addEventListener('dragstart', onDragStart);
+      div.addEventListener('dragend', onDragEnd);
+      div.addEventListener('click', () => openModal(idea));
+
+      return div;
+    }
+
+    function onDragStart(e) {
+      draggedCard = this;
+      draggedSourceColumn = this.closest('.cards').dataset.column;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function onDragEnd(e) {
+      this.classList.remove('dragging');
+      draggedCard = null;
+      draggedSourceColumn = null;
+      document.querySelectorAll('.cards').forEach(c => c.classList.remove('drag-over'));
+    }
+
+    function onDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    }
+
+    function onDragEnter(e) {
+      e.preventDefault();
+      this.classList.add('drag-over');
+    }
+
+    function onDragLeave(e) {
+      this.classList.remove('drag-over');
+    }
+
+    function onDrop(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      if (!draggedCard) return;
+
+      const targetColumn = this.dataset.column;
+      if (targetColumn === draggedSourceColumn) return;
+
+      // Update data model
+      const ideaId = draggedCard.dataset.id;
+      const idea = ideas.find(i => i.id === ideaId);
+      if (idea) {
+        idea.status = targetColumn;
+        // Clear emoji for custom status mapping
+        if (targetColumn === 'blocked') idea.status_emoji = '🔴';
+        if (targetColumn === 'feasible') idea.status_emoji = '⚠️';
+        if (targetColumn === 'no-op') idea.status_emoji = '⚪';
+        if (targetColumn === 'done') idea.status_emoji = '🟢';
+        if (targetColumn === 'abandoned') idea.status_emoji = '⚫';
+      }
+
+      // Persist to localStorage
+      saveBoardState();
+
+      // Re-render
+      renderBoard();
+      updateStats();
+    }
+
+    function saveBoardState() {
+      localStorage.setItem('metaltile-planning-state', JSON.stringify(ideas.map(i => ({ id: i.id, status: i.status }))));
+    }
+
+    function loadBoardState() {
+      const saved = localStorage.getItem('metaltile-planning-state');
+      if (!saved) return;
+      try {
+        const state = JSON.parse(saved);
+        state.forEach(s => {
+          const idea = ideas.find(i => i.id === s.id);
+          if (idea) idea.status = s.status;
+        });
+      } catch (e) { console.error('Failed to load saved state', e); }
+    }
+
+    function updateStats() {
+      const counts = {};
+      ideas.forEach(i => { counts[i.status] = (counts[i.status] || 0) + 1; });
+      const total = ideas.length;
+      document.getElementById('total-badge').textContent = `${total} ideas`;
+
+      const statsEl = document.getElementById('stats');
+      const stats = [
+        { label: 'Blocked', count: counts.blocked || 0, color: 'var(--blocked)' },
+        { label: 'Feasible', count: counts.feasible || 0, color: 'var(--feasible)' },
+        { label: 'Done', count: counts.done || 0, color: 'var(--done)' },
+        { label: 'No-op', count: (counts['no-op'] || 0) + (counts.marginal || 0), color: 'var(--noop)' },
+        { label: 'Abandoned', count: counts.abandoned || 0, color: 'var(--abandoned)' },
+      ];
+      statsEl.innerHTML = stats.map(s =>
+        `<span><span class="stat-dot" style="background:${s.color}"></span>${s.count} ${s.label}</span>`
+      ).join('');
+    }
+
+    function openModal(idea) {
+      document.getElementById('modal-title').textContent = `${idea.id} — ${idea.name}`;
+      const body = document.getElementById('modal-body');
+      body.innerHTML = `
+        <div class="modal-meta">
+          <dt>Category</dt><dd>${idea.category}</dd>
+          <dt>Status</dt><dd>${idea.status_emoji || ''} ${idea.status}</dd>
+          <dt>Verdict</dt><dd>${idea.verdict || '—'}</dd>
+          ${idea.worktree ? `<dt>Worktree</dt><dd><code>${escapeHtml(idea.worktree)}</code></dd>` : ''}
+          ${idea.baseline ? `<dt>Baseline</dt><dd><code>${escapeHtml(idea.baseline)}</code></dd>` : ''}
+          ${idea.final_snap ? `<dt>Final Snap</dt><dd><code>${escapeHtml(idea.final_snap)}</code></dd>` : ''}
+        </div>
+        <p><strong>Notes:</strong> ${escapeHtml(idea.notes)}</p>
+        ${idea.details_url ? `<p><a href="${escapeHtml(idea.details_url)}" target="_blank">📄 Open full assessment →</a></p>` : ''}
+      `;
+      document.getElementById('modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    document.getElementById('modal').addEventListener('click', e => {
+      if (e.target.id === 'modal') closeModal();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+    document.getElementById('search').addEventListener('input', () => { renderBoard(); updateStats(); });
+    document.getElementById('filter-category').addEventListener('change', () => { renderBoard(); updateStats(); });
+
+    loadData().then(() => {
+      loadBoardState();
+      renderBoard();
+      updateStats();
+    });
+  </script>
+</body>
+</html>
